@@ -10,24 +10,30 @@ namespace IntroductionToRx
 {
     class Observables
     {
-        ISubject<string> textChanged = new Subject<string>();
+        ISubject<string> textChanged = new Subject<string>(); 
 
         public virtual void OnTextChanged(string text)
         {
+            // textChanged acts here like an observer
             textChanged.OnNext(text);
         }
 
-        public IObservable<string> TextChanged { get { return textChanged; } }
+
+        public IObservable<string> TextChanged
+        {
+            get
+            {
+                // textChanged acts here like an observable
+                return textChanged;
+            }
+        }
 
         public IObservable<int> LengthChanged
         {
             get
             {
-                // TODO: Remove the following code and add your code here.
-                // HINT: Try creating a new type that implements IObservable<int>
-                //       and takes textChanged in the constructor.
-
-                return Observable.Never<int>();
+                // DistinctUntilChanged suppress duplicate consecutive items emitted by the source Observable
+                return TextChanged.Select(s => s == null ? 0 : s.Length).DistinctUntilChanged();
             }
         }
     }

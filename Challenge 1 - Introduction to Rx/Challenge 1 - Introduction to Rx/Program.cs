@@ -45,12 +45,16 @@ namespace IntroductionToRx
 
             Console.WriteLine("*** Observables ***");
             var observables = new Observables();
+            // here we subscribe to observable
             var textChangedSubscription = observables.TextChanged.Subscribe(text => Console.WriteLine(text));
             observables.OnTextChanged("The");
             observables.OnTextChanged("Reactive");
             var lengthSubscription = observables.LengthChanged.Subscribe(length => Console.WriteLine(length));
             observables.OnTextChanged("Extensions");
             observables.OnTextChanged("are");
+
+            // much less hassle for disposing compare to Event. We eliminate that particular subscription that is 
+            // sitting there on the event source
             textChangedSubscription.Dispose();
             observables.OnTextChanged("compositional");
             lengthSubscription.Dispose();
