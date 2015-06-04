@@ -22,19 +22,21 @@ namespace WritingQueries
             // TODO: Call additional query operators to avoid looking up suggestions for the same text twice in a row
             //       and waiting to look up suggestions until the user pauses at least 200 ms.
             // HINT: Try using DistinctUntilChanged and Throttle.
-
             var lookup = textChanged
                             .Select(_ => txt.Text)
                             .Do(text => Console.WriteLine("TextChanged: {0}", text))
                             .Where(text => text.Length >= 3)
-                            .Do(text => Console.WriteLine("Lookup: {0}", text));
+                            .Do(text => Console.WriteLine("Lookup: {0}", text))
+                            .DistinctUntilChanged()
+                            // ignores those values that are followed by another value before 200ms expires
+                            .Throttle(TimeSpan.FromMilliseconds(200));
 
 
-            // TODO: Eliminate the race condition caused by out-of-order arrivals.
             // HINT: Try using Switch.
             var results = lookup
                           .Select(text => getSuggestions(text))
-                          .Merge();
+                          // only most recent elements
+                          .Switch();
 
             using (results
                 .ObserveOn(lst)
