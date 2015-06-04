@@ -36,18 +36,21 @@ namespace Schedulers
 
         IObservable<StockQuote> GetQuotes(IScheduler scheduler, IEnumerable<StockQuote> quotes)
         {
-            // TODO: Create an observable source of stock quotes
             // HINT: Use both the scheduler and the quotes and think about how to create sources which are like events
-
-            return Observable.Never<StockQuote>();
+            var subject = new Subject<StockQuote>();
+            quotes.ToObservable().Subscribe(quote =>
+            {
+                scheduler.Schedule(new DateTimeOffset(quote.Date), () => subject.OnNext(quote));
+            });
+            return subject;
         }
 
         IObservable<object> Query(IObservable<StockQuote> quotes)
         {
-            // TODO: Write a query to grab the Microsoft "MSFT" stock quotes and output the closing price
             // HINT: Make sure you include a property in the result which has a type of DateTime
-
-            return quotes;
+            return from stock in quotes
+                where stock.Symbol.Equals("MSFT")
+                select new {stock.Date, ClosingPrice = stock.Close};
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
