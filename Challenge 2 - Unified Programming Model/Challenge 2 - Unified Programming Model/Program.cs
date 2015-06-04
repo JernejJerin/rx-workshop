@@ -15,18 +15,16 @@ namespace UnifiedProgrammingModel
             var lst = new ListBox { Top = txt.Height + 10 };
             var frm = new Form { Controls = { txt, lst } };
 
-            // TODO: Convert txt.TextChanged to IObservable<EventPattern<EventArgs>> and assign it to textChanged.
-            // HINT: Try using FromEventPattern.
-            var textChanged = Observable.Never<EventPattern<EventArgs>>();
-
-            // TODO: Convert BeginMatch/EndMatch to Func<string, IObservable<DictionaryWord[]>> and assign it to getSuggestions.
-            // HINT: Try using FromAsyncPattern
-            var getSuggestions = new Func<string, IObservable<DictionaryWord[]>>(s => Observable.Never<DictionaryWord[]>());
+            // convert .NET event "TextChanged" to IObservable
+            var textChanged = Observable.FromEventPattern(txt, "TextChanged");
+            
+            // wrap asynchronous call to begin/end invoke with an asynchronous function which handles the asynchronous call for you
+            var getSuggestions = Observable.FromAsyncPattern<string, DictionaryWord[]>(BeginMatch, EndMatch);
 
             var results = from _ in textChanged
                           let text = txt.Text
                           where text.Length >= 3
-                          from suggestions in getSuggestions(text)
+                          from suggestions in getSuggestions(text)  // getSuggestions returns a map from string to IObservable array
                           select suggestions;
 
             using (results
