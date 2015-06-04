@@ -49,13 +49,22 @@ namespace ComplexEventProcessing
 
         IObservable<object> Query(IObservable<StockQuote> quotes)
         {
-            // TODO: Change the query below to compute the average high and average low over
             //       the past five trading days as well as the current close and date.
             // HINT: Try using Buffer.
 
-            return from quote in quotes
-                   where quote.Symbol == "MSFT"
-                   select new { quote.Close, quote.Date };
+            return quotes
+                .Where(q => q.Symbol.Equals("MSFT"))
+                .Select(q => new {q.Close, q.Date, q.High, q.Low})
+                // buffer quotes in the last 5 days
+                .Buffer(5)
+                // select over list of consecutive 5 past trading days
+                .Select(list => new
+                {
+                    CloseLast = list.Last().Close,
+                    DateLast = list.Last().Date,
+                    HighAvg = list.Average(q => q.High),
+                    LowAvg = list.Average(q => q.Low)
+                });
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
