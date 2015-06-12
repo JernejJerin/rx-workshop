@@ -17,10 +17,10 @@ namespace ProgrammingTheCloud
             // TODO: Change this scheduler to use the AppDomainScheduler
             var scheduler = new AppDomainScheduler("MyDomain");
 
-            Generate(0, x => x < 10, x => x + 1, x => x * x, Scheduler.ThreadPool)
+            Generate(0, x => x < 10, x => x + 1, x => x * x, scheduler)  // change Scheduler.ThreadPool to scheduler
                 .ObserveLocally()
                 .ForEach(Console.WriteLine);
-
+            Console.ReadLine();
             // Expected output:
             //   0
             //   1
@@ -60,18 +60,38 @@ namespace ProgrammingTheCloud
             {
                 // TODO: Rewrite this code to work in a distributed environment
                 // HINT: Closures are bad! Try looking at the various Scheduler overloads.
-                var current = initial;
-                return scheduler.Schedule(self =>
+//                var current = initial;
+//                return scheduler.Schedule(self =>
+//                {
+//                    if (condition(current))
+//                    {
+//                        var result = resultSelector(current);
+//                        observer.OnNext(result);
+//                        current = iterate(current);
+//                        self();
+//                    }
+//                    else
+//                        observer.OnCompleted();
+//                });
+                var generateState = new GenerateState()
                 {
-                    if (condition(current))
+                    condition = condition,
+                    current = initial,
+                    iterate = iterate,
+                    observer = observer,
+                    resultSelector = resultSelector,
+                };
+                return scheduler.Schedule(generateState, (state, self) =>
+                {
+                    if (state.condition(state.current))
                     {
-                        var result = resultSelector(current);
-                        observer.OnNext(result);
-                        current = iterate(current);
-                        self();
+                        var result = state.resultSelector(state.current);
+                        state.observer.OnNext(result);
+                        state.current = state.iterate(state.current);
+                        self(state);
                     }
                     else
-                        observer.OnCompleted();
+                        state.observer.OnCompleted();
                 });
             }
 
