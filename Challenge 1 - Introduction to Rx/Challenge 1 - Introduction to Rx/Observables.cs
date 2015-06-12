@@ -14,7 +14,9 @@ namespace IntroductionToRx
 
         public virtual void OnTextChanged(string text)
         {
-            // textChanged acts here like an observer
+            // textChanged acts here like an Observer
+            // send the notification to the Observer
+            // so basically provider is providing itself with the new data
             textChanged.OnNext(text);
         }
 
