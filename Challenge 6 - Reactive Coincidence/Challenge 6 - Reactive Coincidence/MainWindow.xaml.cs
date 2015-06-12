@@ -47,6 +47,14 @@ namespace ReactiveCoincidence
                     (previous, current) => Subtract(current, previous))
             );
 
+//            var query = Observable.Join(
+//                mouseDown,
+//                mouseMove,
+//                p1 => mouseUp,
+//                p2 => Observable.Empty<Point>(),
+//                (p1, p2) => new {X = p2.X - p1.X, Y = p2.Y - p1.Y}
+//            );
+
             query.Subscribe(delta =>
             {
                 Canvas.SetLeft(image, Canvas.GetLeft(image) + delta.X);
